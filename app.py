@@ -14,4 +14,4 @@ def serve_static(path):
 
 if __name__ == "__main__":
     # Local testing
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run( debug=True)
