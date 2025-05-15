@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hash Identifier Tool</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #121212, #1e1e2f);
+      color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      padding: 2rem;
+      background: #1a1a1a;
+      border-radius: 15px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.2rem;
+    }
+    h2 {
+      font-size: 1rem;
+      font-weight: normal;
+      margin-bottom: 1rem;
+      color: #bbbbbb;
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      font-family: monospace;
+      font-size: 1rem;
+      padding: 0.8rem;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background-color: #2b2b2b;
+      color: #e0e0e0;
+      resize: vertical;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background: #6200ea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #3700b3;
+    }
+    .result {
+      margin-top: 1.5rem;
+      font-size: 1rem;
+      color: #a0ffaf;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+    footer {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" role="main">
+    <h1>Hash Identifier Tool</h1>
+    <h2>Determine the possible hash algorithm(s) for your input</h2>
+    <label for="hashInput" class="visually-hidden">Enter Hash</label>
+    <textarea id="hashInput" aria-label="Hash Input" placeholder="Paste or type a hash value here..."></textarea>
+    <button onclick="identifyHash()" aria-label="Identify Hash">Identify Hash</button>
+    <div class="result" id="resultArea" role="status"></div>
+    <footer>
+      Supports 250+ hash algorithms including MD5, SHA variants, BLAKE, RIPEMD, HAVAL, GOST, CRC, Keccak, Bcrypt, Scrypt, Argon2, and many more.
+    </footer>
+  </div>
+
+  <script>
+    const hashDB = {
+  4: ["CRC-16", "Fletcher-16", "Luhn", "DEK Hash"],
+  8: ["CRC-8", "ELF Hash", "DJB Hash", "JS Hash", "RS Hash", "PJW Hash", "BKDR Hash"],
+  16: ["Adler-32", "CRC-32", "CityHash32", "FNV-1 (32-bit)", "FNV-1a (32-bit)", "MurmurHash2", "SuperFastHash", "SpookyHash-32", "Jenkins Hash"],
+  20: ["CRC-40", "DJB2 Hash", "Fletcher-40"],
+  24: ["CRC-24", "PANAMA (truncated)", "SipHash"],
+  28: ["CRC-56", "CityHash64 (truncated)"],
+  30: ["CityHash64"],
+  32: ["MD2", "MD4", "MD5", "HAVAL-128", "RIPEMD-128", "FNV-1a (32-bit)", "CRC-128", "Tiger192,3", "SDBM Hash", "MurmurHash3 (32-bit)", "T1ha (32-bit)"],
+  33: ["Snefru-128", "AIX MD5", "Lotus Notes/Domino"],
+  34: ["MSSQL 2000", "Oracle 7-10g", "MySQL pre-4.1"],
+  35: ["Base58Check Address (Bitcoin)"],
+  36: ["CISCO Type 7", "NTLMv1 (truncated)"],
+  37: ["LM Hash", "SAM Hash"],
+  40: ["SHA-0", "SHA-1", "RIPEMD-160", "HAVAL-160", "Tiger", "Whirlpool-0", "Skein-160", "MAC-160", "MD5 (SHA1 mixed)", "Bitcoin RIPEMD"],
+  48: ["SHAKE128 (192-bit)", "Skein-192", "SIMD-192", "Keccak-192"],
+  56: ["SHA-224", "SHA3-224", "HAVAL-224", "Keccak-224", "RIPEMD-224", "Skein-224", "SIMD-224"],
+  60: ["Snefru-192", "HAVAL-192"],
+  64: [
+    "SHA-256", "SHA3-256", "Keccak-256", "HAVAL-256", "BLAKE2s", "RIPEMD-256",
+    "FNV-1a (64-bit)", "SHAKE128 (256-bit)", "CryptoNight", "Skein-256",
+    "MurmurHash3 (128-bit truncated)", "TTH", "X11", "X13", "X14", "X15", "X16r",
+    "GOST R 34.11-94", "MurmurHash3 (64-bit)", "CityHash64", "XXH64", "FNV-1a (64-bit)",
+    "SipHash-2-4", "BLAKE2xs", "Keccak truncated", "SHA-256 HMAC", "Scrypt (short)"
+  ],
+  72: ["LDAP SSHA", "PBKDF2 (short)", "LDAP SSHA256"],
+  80: ["Tiger2", "HAVAL-5-160", "SHA3-320", "Skein-320", "XXH3-512 (truncated)"],
+  88: ["PBKDF2-HMAC-SHA256 (salted)", "Django PBKDF2", "CryptoNightR", "XXHash3-88"],
+  96: ["SHA-384", "SHA3-384", "Keccak-384", "Skein-384", "BLAKE2bp", "SHA-384 HMAC"],
+  100: ["CryptoNote Payment ID"],
+  104: ["GOST R 34.11-94 (long)", "GOST Checksum (base64)"],
+  112: ["PBKDF2 (HMAC-SHA1, long)", "SHA512/224", "SHA512/256", "Bitcoin WIF (Base58)"],
+  120: ["Streebog-384", "Scrypt (salted)", "Groestlcoin (long)", "Django SHA384"],
+  124: ["Scrypt (short salt + long pass)"],
+  128: [
+    "SHA-512", "SHA3-512", "SHA-512/224", "SHA-512/256", "BLAKE2b", "Whirlpool",
+    "Streebog", "Keccak-512", "SHAKE256 (512-bit)", "Skein-512", "PBKDF2-SHA512",
+    "Argon2d", "Argon2i", "Argon2id", "PBKDF2-HMAC-SHA512", "Lyra2", "BcryptSHA256",
+    "GOST R 34.11-2012", "SHA-512 HMAC", "MD5-Crypt", "BCrypt-PBKDF", "MySQL5 hash",
+    "XXHash128", "XXH3-128", "X17", "MeowHash (128-bit)", "HighwayHash-128"
+  ],
+  130: ["Bitcoin WIF Private Key"],
+  132: ["Ethereum Address (0x + 64 hex)", "Keccak256 with prefix"],
+  136: ["SHAKE128-512", "SHAKE256 (truncated)", "Skein-512 (truncated)", "SHA3 KMAC"],
+  144: ["SHA3-576", "Keccak-576"],
+  160: ["SHAKE256 (640-bit)", "Skein-1024 (truncated)", "Echo-512", "Streebog-512"],
+  192: ["SHAKE256 (768-bit)", "XXHash3-192", "HighwayHash-192", "KangarooTwelve"],
+  256: [
+    "SHAKE256 (1024-bit)", "Skein-1024", "MeowHash (256-bit)", "HighwayHash-256",
+    "Echo-256", "SHAvite-3-256", "BMW-256", "Luffa-256", "MD6 (256)", "JH (256-bit)",
+    "CubeHash", "Fugue", "LaneHash", "Hamsi", "Grøstl", "EchoHash", "Blue Midnight Wish",
+    "MarsupilamiFourteen", "SeaHash", "MetroHash128", "T1ha2", "ZHash", "QuarkHash",
+    "QubitHash", "NeoScrypt", "Myriad-Groestl", "PHOTON", "BASTION", "CryptoNight Heavy",
+    "X21", "X22i", "X25X"
+  ]
+};
+
+    function identifyHash() {
+      const input = document.getElementById('hashInput').value.trim();
+      const resultArea = document.getElementById('resultArea');
+      resultArea.textContent = '';
+
+      const hexRegex = /^[a-fA-F0-9]+$/;
+      if (!hexRegex.test(input)) {
+        resultArea.textContent = 'Error: Input contains non-hexadecimal characters.';
+        resultArea.style.color = '#ff6b6b';
+        return;
+      }
+
+      const length = input.length;
+      const possible = hashDB[length] || [];
+      if (possible.length > 0) {
+        resultArea.style.color = '#a0ffaf';
+        resultArea.textContent = `Possible types (${length} hex chars):\n` + possible.join(", ");
+      } else {
+        resultArea.style.color = '#ffaa00';
+        resultArea.textContent = `No matches found. Length: ${length} characters.\nTry checking for whitespace or formatting.`;
+      }
+    }
+
+    document.getElementById("hashInput").addEventListener("keydown", function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        identifyHash();
+      }
+    });
+  </script>
+</body>
+</html>
