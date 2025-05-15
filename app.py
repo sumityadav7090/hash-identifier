@@ -1,10 +1,17 @@
-from flask import Flask, send_from_directory
+from flask import Flask, send_file
 
 app = Flask(__name__)
 
-@app.route("/")
-def serve_index():
-    return send_from_directory(".", "index.html")
+@app.route("/", methods=["GET"])
+def index():
+    # Serve the main page
+    return send_file("index.html")
+
+@app.route("/<path:path>", methods=["GET"])
+def serve_static(path):
+    # If additional static files are added later (like CSS or JS), serve them
+    return send_file(path)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Local testing
+    app.run(host="0.0.0.0", port=5000, debug=True)
