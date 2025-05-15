@@ -4,8 +4,7 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET"])
 def index():
-    # Serve the main page
-    return send_file("index.html")
+    return render_template('index.html')
 
 @app.route("/<path:path>", methods=["GET"])
 def serve_static(path):
